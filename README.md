@@ -65,4 +65,3 @@ Before describing the service as production ready:
 ## License and model responsibility
 
 The repository code is MIT licensed. Model weights and datasets have their own terms. Check the exact model card and deployment terms before commercial use. The default model choice should be pinned to a reviewed revision before any real deployment.
-
