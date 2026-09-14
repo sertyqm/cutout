@@ -1,0 +1,2 @@
+"""Cutout Lab application package."""
+
