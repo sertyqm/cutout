@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lesson 1: Trace one image</title><link rel="stylesheet" href="../assets/lesson.css"></head>
+<body><main>
+  <p class="eyebrow">Cutout · Lesson 1 · 15 minutes</p>
+  <h1>Trace one image from click to download.</h1>
+  <p>Your job is not to memorise FastAPI or JavaScript. Your job is to be able to point at an uploaded image and say where it is, what form it has, and which code owns it at every moment.</p>
+
+  <h2>The path</h2>
+  <div class="map"><div><b>1. File</b><span>The browser gives JavaScript a <code>File</code> from the input or drop event.</span></div><div><b>2. Request</b><span><code>FormData</code> packages it under the name <code>image</code>; <code>fetch</code> sends it.</span></div><div><b>3. Model</b><span>FastAPI reads it, validates it, creates a Pillow image, then calls the engine.</span></div><div><b>4. Result</b><span>The endpoint returns PNG bytes. The browser turns those bytes into a temporary URL for preview and download.</span></div></div>
+
+  <h2>The contract is the important part</h2>
+  <p>The frontend and backend are separate programs. They only agree through a contract:</p>
+  <pre>POST /api/remove-background
+request: multipart/form-data, field name: image
+response: image/png, body: PNG bytes
+
+failure: JSON body, { "detail": "human-readable reason" }</pre>
+  <p>If the field name changes in JavaScript but not Python, the request fails. If the backend returns JSON instead of PNG bytes, the preview and download fail. Most full-stack debugging is checking that this contract stayed true.</p>
+
+  <h2>Find the four hand-offs in this repository</h2>
+  <ol><li>In <code>app/static/app.js</code>, find where the browser gets a <code>File</code>.</li><li>Find <code>form.append("image", file)</code>. Why must <code>"image"</code> match Python?</li><li>In <code>app/main.py</code>, find <code>image: UploadFile = File(...)</code>. What is checked before the engine runs?</li><li>Back in JavaScript, find <code>response.blob()</code> and <code>URL.createObjectURL</code>. Why does the browser not need to save a server file first?</li></ol>
+
+  <div class="task"><strong>Your task</strong><br>Without looking at the code, write the four stages above in your own words. Then open <code>app/static/app.js</code> and add one comment above <code>processImage</code> that describes its responsibility in one sentence. Do not change behavior.<br><br>Paste that sentence here. I will review whether it captures the real responsibility, then we move to the model boundary.</div>
+
+  <p>Primary reading: <a href="https://fastapi.tiangolo.com/tutorial/request-files/">FastAPI’s Request Files guide</a> and <a href="https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest_API/Using_FormData_Objects">MDN’s FormData guide</a>. Ask me about any term that feels vague before guessing.</p>
+</main></body></html>
