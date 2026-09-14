@@ -8,4 +8,4 @@ __pycache__/
 artifacts/
 uploads/
 models/
-
+.superdesign/tmp/

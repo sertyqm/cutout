@@ -1,18 +1,28 @@
 from __future__ import annotations
 
 from io import BytesIO
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
-from fastapi.responses import Response
+from fastapi.responses import FileResponse, Response
+from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
 
 from app.config import Settings, settings
 from app.engine import BackgroundRemovalEngine, BiRefNetEngine
 
-app = FastAPI(title="Cutout Lab", version="0.1.0", description="Self-hosted background removal API")
+app = FastAPI(title="Cutout", version="0.1.0", description="Self-hosted background removal API")
 engine: BackgroundRemovalEngine = BiRefNetEngine(settings)
 
 ALLOWED_CONTENT_TYPES = {"image/jpeg", "image/png", "image/webp"}
+STATIC_DIR = Path(__file__).parent / "static"
+
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+
+@app.get("/", include_in_schema=False)
+def home() -> FileResponse:
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 def get_engine() -> BackgroundRemovalEngine:
@@ -56,4 +66,3 @@ async def remove_background(
         media_type="image/png",
         headers={"Content-Disposition": 'attachment; filename="cutout.png"'},
     )
-

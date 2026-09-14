@@ -38,6 +38,14 @@ def test_health_reports_configuration() -> None:
     assert response.json()["status"] == "ok"
 
 
+def test_home_serves_the_cutout_interface() -> None:
+    response = client().get("/")
+
+    assert response.status_code == 200
+    assert "Remove the" in response.text
+    assert 'id="comparison"' in response.text
+
+
 def test_remove_background_returns_transparent_png() -> None:
     response = client().post(
         "/api/remove-background",
@@ -65,4 +73,3 @@ def test_remove_background_rejects_malformed_image() -> None:
     )
 
     assert response.status_code == 422
-

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content="Free, open-source background removal." />
+    <title>Cutout</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script defer src="/static/app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="wordmark" href="/" aria-label="Cutout home">CUTOUT</a>
+      <nav aria-label="Main navigation">
+        <button class="theme-toggle" type="button" aria-label="Switch to dark mode" aria-pressed="false">
+          <span class="theme-icon moon" aria-hidden="true">☾</span><span class="theme-icon sun" aria-hidden="true">☼</span>
+        </button>
+        <a href="https://github.com/sertyqm/cutout" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://github.com/sertyqm/cutout#license" target="_blank" rel="noreferrer">Open source</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div>
+          <p class="eyebrow">Free background removal</p>
+          <h1>Remove the<br />background.</h1>
+        </div>
+        <p class="hero-copy">Upload a photo, check the cutout and download a transparent PNG. No account required.</p>
+      </section>
+
+      <section class="tool" aria-label="Background removal tool">
+        <div id="upload-state" class="upload-state">
+          <label id="dropzone" class="dropzone" for="image-input">
+            <span class="upload-mark" aria-hidden="true">+</span>
+            <span class="upload-title">Drop a photo here</span>
+            <span class="upload-copy">PNG, JPG or WEBP, up to 15 MB</span>
+            <span class="choose-button">Choose image</span>
+            <input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" />
+          </label>
+          <p class="privacy-note">Your image is used to create the cutout.</p>
+        </div>
+
+        <div id="processing-state" class="processing-state" hidden aria-live="polite">
+          <div class="processing-dot" aria-hidden="true"></div>
+          <p id="processing-copy">Removing the background…</p>
+        </div>
+
+        <div id="result-state" hidden>
+          <div class="tool-topline">
+            <span><i class="status-dot"></i>Comparison preview</span>
+            <span>Drag to compare</span>
+          </div>
+          <div id="comparison" class="comparison" style="--split: 50%" tabindex="0" role="slider" aria-label="Before and after comparison" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+            <div class="checkerboard"></div>
+            <img id="result-image" class="result-image" alt="Background removed result" />
+            <img id="source-image" class="source-image" alt="Original uploaded image" />
+            <div class="comparison-line" aria-hidden="true"><span>↔</span></div>
+            <span class="image-label source-label">Original</span>
+            <span class="image-label result-label">Transparent PNG</span>
+          </div>
+          <div class="result-footer">
+            <div><p id="file-name" class="file-name"></p><p class="result-note">Ready to download with transparency.</p></div>
+            <button id="download-button" class="download-button" type="button">Download PNG</button>
+          </div>
+        </div>
+        <p id="error-message" class="error-message" role="alert" hidden></p>
+      </section>
+
+      <section class="steps" aria-label="How it works">
+        <div><span>01</span><h2>Upload</h2><p>Choose one image from your device.</p></div>
+        <div><span>02</span><h2>Remove</h2><p>The model creates an alpha matte.</p></div>
+        <div><span>03</span><h2>Download</h2><p>Save the transparent PNG.</p></div>
+      </section>
+    </main>
+
+    <footer><span>Experimental open-source project.</span><a href="https://github.com/ZhengPeng7/BiRefNet" target="_blank" rel="noreferrer">Model and evaluation notes</a></footer>
+  </body>
+</html>
