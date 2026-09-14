@@ -10,6 +10,7 @@ from app.main import app, get_engine
 
 class FakeEngine:
     is_loaded = True
+    active_device = "cpu"
 
     def remove_background(self, image: Image.Image) -> bytes:
         output = image.convert("RGBA")

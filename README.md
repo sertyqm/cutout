@@ -1,20 +1,21 @@
-# Cutout Lab
+# Cutout
 
-A self-hosted background-removal API built as a learning and portfolio project. It creates transparent PNG cutouts from uploaded images and keeps the inference engine behind a small, replaceable interface.
+A self-hosted background-removal web tool built as a learning and portfolio project. It uploads an image, creates a transparent PNG cutout and lets the visitor compare and download the result.
 
 The first engine is designed for the official `ZhengPeng7/BiRefNet_HR-matting` model. This is an **experimental portfolio project**, not a claim of Remove.bg-equivalent quality. The right way to judge it is on a representative, held-out image set that includes hair, fabric, products, reflections and semi-transparent materials.
 
 ## What is included
 
+- Responsive browser interface with upload, before/after slider, dark mode and PNG download
 - FastAPI API with image validation and transparent PNG output
 - A model-engine boundary that makes experiments reproducible and testable
-- Lazy GPU model loading, health reporting and a Docker deployment setup
+- Lazy model loading, GPU FP16 inference, serial inference and health reporting
 - A test suite that exercises request validation and output handling without downloading model weights
 - An evaluation plan for comparing candidate models against a defined acceptance set
 
 ## Quick start
 
-Python 3.11 and an NVIDIA CUDA environment are recommended for actual inference.
+Python 3.11 and an NVIDIA CUDA environment are recommended for actual inference. The default is a pinned snapshot of the official [`ZhengPeng7/BiRefNet_HR-matting`](https://huggingface.co/ZhengPeng7/BiRefNet_HR-matting) model. Its official card documents the Transformers loading route and 2048px inference used here.
 
 ```bash
 python -m venv .venv
@@ -23,9 +24,11 @@ pip install -r requirements.txt
 uvicorn app.main:app --reload
 ```
 
-Open `http://127.0.0.1:8000/docs` and use `POST /api/remove-background` with an image file.
+Open `http://127.0.0.1:8000`.
 
-The first real request downloads the model weights from Hugging Face unless they are already cached. Set `CUTOUT_MODEL_ID` to choose a compatible engine model and `CUTOUT_DEVICE=cpu` for CPU-only experiments. CPU inference is expected to be slow.
+The first real request downloads the model weights from Hugging Face unless they are already cached. Copy `.env.example` to `.env` and adjust the variables if needed. `CUTOUT_DEVICE=auto` selects CUDA when it is available, otherwise CPU. CPU inference is expected to be slow. The model loads lazily so starting the web server does not download it.
+
+For a different model, do not change only `CUTOUT_MODEL_ID`. Confirm that its preprocessing, prediction output and licensing are compatible with `BiRefNetEngine`, then record the model ID and immutable revision in `.env`.
 
 ## API
 
@@ -35,7 +38,7 @@ The first real request downloads the model weights from Hugging Face unless they
 - Supported input: PNG, JPEG, WEBP
 - Result: a PNG with an alpha channel
 
-`GET /health` reports the configured model, device and whether it has been loaded.
+`GET /health` reports the configured model, immutable revision, requested device, active device and whether it has been loaded.
 
 ## Run tests
 

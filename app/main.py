@@ -3,13 +3,14 @@ from __future__ import annotations
 from io import BytesIO
 from pathlib import Path
 
-from fastapi import Depends, FastAPI, File, HTTPException, UploadFile
+from fastapi import Depends, File, FastAPI, HTTPException, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image, UnidentifiedImageError
 
 from app.config import Settings, settings
-from app.engine import BackgroundRemovalEngine, BiRefNetEngine
+from app.engine import BackgroundRemovalEngine, BiRefNetEngine, InferenceUnavailableError
 
 app = FastAPI(title="Cutout", version="0.1.0", description="Self-hosted background removal API")
 engine: BackgroundRemovalEngine = BiRefNetEngine(settings)
@@ -35,6 +36,8 @@ def health() -> dict[str, object]:
         "status": "ok",
         "model_id": settings.model_id,
         "configured_device": settings.device,
+        "active_device": engine.active_device,
+        "model_revision": settings.model_revision,
         "model_loaded": engine.is_loaded,
     }
 
@@ -47,20 +50,27 @@ async def remove_background(
     if image.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(status_code=415, detail="Upload a PNG, JPEG or WEBP image.")
 
-    payload = await image.read(settings.max_upload_bytes + 1)
-    if len(payload) > settings.max_upload_bytes:
-        raise HTTPException(status_code=413, detail="The image exceeds the upload size limit.")
-
     try:
-        source = Image.open(BytesIO(payload))
-        source.load()
-    except (UnidentifiedImageError, OSError) as error:
-        raise HTTPException(status_code=422, detail="The uploaded file is not a valid image.") from error
+        payload = await image.read(settings.max_upload_bytes + 1)
+        if len(payload) > settings.max_upload_bytes:
+            raise HTTPException(status_code=413, detail="The image exceeds the upload size limit.")
 
-    if source.width * source.height > settings.max_image_pixels:
-        raise HTTPException(status_code=413, detail="The image exceeds the pixel limit.")
+        try:
+            source = Image.open(BytesIO(payload))
+            source.load()
+        except (UnidentifiedImageError, OSError) as error:
+            raise HTTPException(status_code=422, detail="The uploaded file is not a valid image.") from error
 
-    output = active_engine.remove_background(source)
+        if source.width * source.height > settings.max_image_pixels:
+            raise HTTPException(status_code=413, detail="The image exceeds the pixel limit.")
+
+        try:
+            output = await run_in_threadpool(active_engine.remove_background, source)
+        except InferenceUnavailableError as error:
+            raise HTTPException(status_code=503, detail=str(error)) from error
+    finally:
+        await image.close()
+
     return Response(
         content=output,
         media_type="image/png",
