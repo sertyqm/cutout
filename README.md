@@ -15,7 +15,7 @@ The first engine is designed for the official `ZhengPeng7/BiRefNet_HR-matting` m
 
 ## Quick start
 
-Python 3.11 and an NVIDIA CUDA environment are recommended for actual inference. The default is a pinned snapshot of the official [`ZhengPeng7/BiRefNet_HR-matting`](https://huggingface.co/ZhengPeng7/BiRefNet_HR-matting) model. Its official card documents the Transformers loading route and 2048px inference used here.
+Python 3.11 and an NVIDIA CUDA environment are recommended for actual inference. The default is a pinned snapshot of the official [`ZhengPeng7/BiRefNet_HR-matting`](https://huggingface.co/ZhengPeng7/BiRefNet_HR-matting) model. Its remote model code depends on `timm`; the pinned runtime dependencies include it and follow the upstream requirement that NumPy remain below v2.
 
 ```bash
 python -m venv .venv

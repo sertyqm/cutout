@@ -5,6 +5,7 @@ from io import BytesIO
 from fastapi.testclient import TestClient
 from PIL import Image
 
+from app.engine import InferenceUnavailableError
 from app.main import app, get_engine
 
 
@@ -18,6 +19,14 @@ class FakeEngine:
         buffer = BytesIO()
         output.save(buffer, format="PNG")
         return buffer.getvalue()
+
+
+class UnavailableEngine:
+    is_loaded = False
+    active_device = None
+
+    def remove_background(self, image: Image.Image) -> bytes:
+        raise InferenceUnavailableError("The background-removal model could not be loaded.")
 
 
 def image_bytes(format: str = "PNG") -> bytes:
@@ -56,6 +65,20 @@ def test_remove_background_returns_transparent_png() -> None:
     assert response.status_code == 200
     assert response.headers["content-type"] == "image/png"
     assert Image.open(BytesIO(response.content)).mode == "RGBA"
+
+
+def test_remove_background_reports_model_loading_failure() -> None:
+    app.dependency_overrides[get_engine] = lambda: UnavailableEngine()
+    try:
+        response = TestClient(app).post(
+            "/api/remove-background",
+            files={"image": ("source.png", image_bytes(), "image/png")},
+        )
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 503
+    assert "could not be loaded" in response.json()["detail"]
 
 
 def test_remove_background_rejects_unsupported_content_type() -> None:
